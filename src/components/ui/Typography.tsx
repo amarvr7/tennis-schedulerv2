@@ -10,6 +10,10 @@ interface TypographyProps {
 /**
  * Typography component that adheres to our design token system
  * All text in the application should use this component to maintain consistency
+ * 
+ * Font Usage:
+ * - Headings (h1-h6): Oswald
+ * - Body text (p, lead, small, subtle): Inter
  */
 export default function Typography({
   children,
@@ -19,16 +23,16 @@ export default function Typography({
 }: TypographyProps) {
   // Using only tokens defined in our tailwind config
   const variantClasses = {
-    h1: 'text-4xl leading-tight',
-    h2: 'text-3xl leading-tight',
-    h3: 'text-2xl leading-tight',
-    h4: 'text-xl leading-snug',
-    h5: 'text-lg leading-snug',
-    h6: 'text-base leading-normal',
-    p: 'text-base leading-relaxed',
-    lead: 'text-lg leading-relaxed',
-    small: 'text-sm leading-normal',
-    subtle: 'text-sm leading-normal text-neutral-500',
+    h1: 'text-4xl leading-tight font-heading',
+    h2: 'text-3xl leading-tight font-heading',
+    h3: 'text-2xl leading-tight font-heading',
+    h4: 'text-xl leading-snug font-heading',
+    h5: 'text-lg leading-snug font-heading',
+    h6: 'text-base leading-normal font-heading',
+    p: 'text-base leading-relaxed font-sans',
+    lead: 'text-lg leading-relaxed font-sans',
+    small: 'text-sm leading-normal font-sans',
+    subtle: 'text-sm leading-normal text-neutral-500 font-sans',
   };
 
   const weightClasses = {

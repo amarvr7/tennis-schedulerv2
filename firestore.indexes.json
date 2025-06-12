@@ -1,0 +1,19 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "scheduleSlots",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "day",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "timeSlot", 
+          "order": "ASCENDING"
+        }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+} 

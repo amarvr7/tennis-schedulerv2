@@ -2,13 +2,14 @@ import { ButtonHTMLAttributes, ReactNode } from 'react';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
-  variant?: 'primary' | 'secondary' | 'outline';
+  variant?: 'primary' | 'secondary' | 'outline' | 'error';
   size?: 'sm' | 'md' | 'lg';
 }
 
 /**
  * Button component that adheres to our design token system
  * Uses only the semantic color tokens defined in tailwind.config.js
+ * Uses Merriweather font for distinctive button typography
  */
 export default function Button({
   children,
@@ -17,12 +18,13 @@ export default function Button({
   className = '',
   ...props
 }: ButtonProps) {
-  const baseClasses = 'inline-flex items-center justify-center font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500';
+  const baseClasses = 'inline-flex items-center justify-center font-serif font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500';
   
   const variantClasses = {
     primary: 'bg-primary-600 text-white hover:bg-primary-700',
     secondary: 'bg-secondary-500 text-white hover:bg-secondary-600',
-    outline: 'border border-neutral-300 text-neutral-700 hover:bg-neutral-50'
+    outline: 'border border-neutral-300 text-neutral-700 hover:bg-neutral-50',
+    error: 'bg-error-500 text-white hover:bg-error-600 disabled:bg-error-50 disabled:text-error-300'
   };
   
   const sizeClasses = {

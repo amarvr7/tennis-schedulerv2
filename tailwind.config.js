@@ -20,85 +20,136 @@ module.exports = {
     "./src/styles/**/*.css",
   ],
   theme: {
-    // Color system with semantic naming
+    // Color system with semantic naming - Updated with brand colors
     colors: {
       transparent: 'transparent',
       current: 'currentColor',
-      // Primary brand colors
+      // Primary brand colors - IMG Blue as primary
       primary: {
-        DEFAULT: '#1E40AF', // Blue 800
-        50: '#EFF6FF',
-        100: '#DBEAFE',
-        200: '#BFDBFE',
-        300: '#93C5FD',
-        400: '#60A5FA',
-        500: '#3B82F6',
-        600: '#2563EB',
-        700: '#1D4ED8',
-        800: '#1E40AF',
-        900: '#1E3A8A',
-        950: '#172554',
+        DEFAULT: '#184a69', // IMG Blue
+        50: '#f0f4f7',
+        100: '#d9e2e8',
+        200: '#b3c5d1',
+        300: '#8da8ba',
+        400: '#668ba3',
+        500: '#184a69', // IMG Blue
+        600: '#153e5a',
+        700: '#11334b',
+        800: '#0e273c',
+        900: '#0a1b2d',
+        950: '#051015',
       },
-      // Secondary accent color
+      // Secondary accent color - Accent Blue
       secondary: {
-        DEFAULT: '#F59E0B', // Amber 500
-        50: '#FFFBEB',
-        100: '#FEF3C7',
-        200: '#FDE68A',
-        300: '#FCD34D',
-        400: '#FBBF24',
-        500: '#F59E0B',
-        600: '#D97706',
-        700: '#B45309',
-        800: '#92400E',
-        900: '#78350F',
-        950: '#451A03',
+        DEFAULT: '#3c80a9', // Accent Blue
+        50: '#f1f6fa',
+        100: '#dce9f2',
+        200: '#b9d3e5',
+        300: '#96bdd8',
+        400: '#73a7cb',
+        500: '#3c80a9', // Accent Blue
+        600: '#306687',
+        700: '#244d65',
+        800: '#183343',
+        900: '#0c1a22',
+        950: '#060d11',
+      },
+      // Tertiary - Academy Blue  
+      tertiary: {
+        DEFAULT: '#006fba', // Academy Blue
+        50: '#e6f2ff',
+        100: '#cce6ff',
+        200: '#99ccff',
+        300: '#66b3ff',
+        400: '#3399ff',
+        500: '#006fba', // Academy Blue
+        600: '#005294',
+        700: '#003d6f',
+        800: '#00294a',
+        900: '#001425',
+        950: '#000a12',
       },
       // Neutral colors for text, backgrounds, borders
       neutral: {
-        DEFAULT: '#6B7280', // Gray 500
-        50: '#F9FAFB',
-        100: '#F3F4F6',
-        200: '#E5E7EB',
-        300: '#D1D5DB',
-        400: '#9CA3AF',
-        500: '#6B7280',
-        600: '#4B5563',
-        700: '#374151',
-        800: '#1F2937',
-        900: '#111827',
-        950: '#030712',
+        DEFAULT: '#424242', // Text Gray as default neutral
+        50: '#fafafa',
+        100: '#f5f5f5',
+        200: '#e0e0e0', // Input Gray
+        300: '#bdbdbd',
+        400: '#9e9e9e',
+        500: '#757575',
+        600: '#616161',
+        700: '#424242', // Text Gray
+        800: '#212121',
+        900: '#000000', // Black
+        950: '#000000',
+      },
+      // Navy for dark themes/backgrounds
+      navy: {
+        DEFAULT: '#002d54', // Corporate Navy
+        50: '#e6f0f7',
+        100: '#cce0ef',
+        200: '#99c2df',
+        300: '#66a3cf',
+        400: '#3385bf',
+        500: '#0066af',
+        600: '#00528c',
+        700: '#003d69',
+        800: '#002d54', // Corporate Navy
+        900: '#001e39',
+        950: '#000f1d',
       },
       // Success, error, warning, info states
       success: {
-        DEFAULT: '#10B981', // Emerald 500
-        50: '#ECFDF5',
-        100: '#D1FAE5',
-        500: '#10B981', 
-        700: '#047857',
+        DEFAULT: '#bfd730', // Camp Green
+        50: '#f8fce6',
+        100: '#f0f9cc',
+        200: '#e1f399',
+        300: '#d2ed66',
+        400: '#c3e733',
+        500: '#bfd730', // Camp Green
+        600: '#99ac26',
+        700: '#73811d',
+        800: '#4d5613',
+        900: '#262b0a',
+        950: '#131505',
       },
       error: {
-        DEFAULT: '#EF4444', // Red 500
-        50: '#FEF2F2',
-        100: '#FEE2E2',
-        500: '#EF4444',
-        700: '#B91C1C',
+        DEFAULT: '#de3942', // CTA Red Default
+        50: '#fbe9ea', // CTA Red Disabled
+        100: '#f7d3d5',
+        200: '#efa7ab',
+        300: '#e77b81',
+        400: '#df4f57',
+        500: '#de3942', // CTA Red Default
+        600: '#c32129', // CTA Red Hover
+        700: '#921a20',
+        800: '#611117',
+        900: '#30080b',
+        950: '#180406',
       },
       warning: {
-        DEFAULT: '#F59E0B', // Amber 500
-        50: '#FFFBEB',
-        100: '#FEF3C7',
-        500: '#F59E0B',
-        700: '#B45309',
+        DEFAULT: '#f59e0b',
+        50: '#fffbeb',
+        100: '#fef3c7',
+        500: '#f59e0b',
+        700: '#b45309',
       },
       info: {
-        DEFAULT: '#3B82F6', // Blue 500
-        50: '#EFF6FF',
-        100: '#DBEAFE',
-        500: '#3B82F6',
-        700: '#1D4ED8',
+        DEFAULT: '#366e92', // Link Blue
+        50: '#f0f5f9',
+        100: '#e0ebf2',
+        200: '#c1d7e5',
+        300: '#a2c3d8',
+        400: '#83afcb',
+        500: '#649bbe',
+        600: '#4587b1',
+        700: '#366e92', // Link Blue
+        800: '#2a5571',
+        900: '#1d3c50',
+        950: '#0f1e28',
       },
-      white: '#FFFFFF',
+      white: '#ffffff',
       black: '#000000',
     },
     
@@ -141,11 +192,12 @@ module.exports = {
       96: '384px',
     },
     
-    // Typography system
+    // Typography system - Updated with brand fonts
     fontFamily: {
-      sans: ['var(--font-geist-sans)', 'sans-serif'],
-      serif: ['var(--font-merriweather)', 'ui-serif', 'Georgia', 'serif'],
-      mono: ['var(--font-geist-mono)', 'monospace'],
+      heading: ['var(--font-oswald)', 'sans-serif'], // Headings: Oswald
+      sans: ['var(--font-inter)', 'sans-serif'], // Body: Inter  
+      serif: ['var(--font-merriweather)', 'serif'], // Buttons: Merriweather
+      mono: ['var(--font-geist-mono)', 'monospace'], // Keep mono for code
     },
     
     fontSize: {

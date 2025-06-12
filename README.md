@@ -1,6 +1,6 @@
-# Next.js 15+ Boilerplate
+# Amar Image Project
 
-A minimal Next.js 15+ app with TypeScript, App Router, and Tailwind CSS.
+A Next.js 15+ application built with TypeScript, App Router, and Tailwind CSS.
 
 ## Features
 
