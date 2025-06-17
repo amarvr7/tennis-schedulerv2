@@ -92,7 +92,9 @@ export default function GroupsPage() {
       // Update group basic info
       await groupService.update({
         id: editingGroup.id,
-        name: groupData.name
+        name: groupData.name,
+        size: groupData.size,
+        color: groupData.color
       });
       
       // Update coach assignments
@@ -149,9 +151,16 @@ export default function GroupsPage() {
       key: 'name',
       label: 'Group Name',
       sortable: true,
-      render: (value) => (
+      render: (value, group) => (
         <div className="flex items-center">
-          <UserGroupIcon className="h-5 w-5 text-neutral-400 mr-2" />
+          {group.color ? (
+            <div 
+              className="w-4 h-4 rounded-full border border-neutral-300 mr-3 flex-shrink-0"
+              style={{ backgroundColor: group.color }}
+            />
+          ) : (
+            <UserGroupIcon className="h-5 w-5 text-neutral-400 mr-2" />
+          )}
           <Typography weight="medium">{value}</Typography>
         </div>
       )

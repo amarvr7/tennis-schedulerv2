@@ -13,6 +13,13 @@ interface CoachFormProps {
   isEdit?: boolean;
 }
 
+interface FormData {
+  name: string;
+  role: 'head' | 'assistant' | ''; // Allow empty string for unselected state
+  email?: string;
+  phone?: string;
+}
+
 interface FormErrors {
   name?: string;
   role?: string;
@@ -27,11 +34,11 @@ export default function CoachForm({
   loading = false,
   isEdit = false
 }: CoachFormProps) {
-  const [formData, setFormData] = useState<CreateCoachData>({
+  const [formData, setFormData] = useState<FormData>({
     name: initialData.name || '',
-    role: initialData.role || '' as any,
-    email: initialData.email || '',
-    phone: initialData.phone || '',
+    role: initialData.role || '', // Start with empty string to force selection
+    email: initialData.email,
+    phone: initialData.phone,
   });
   
   const [errors, setErrors] = useState<FormErrors>({});
@@ -59,22 +66,18 @@ export default function CoachForm({
       newErrors.name = 'Name must be at least 2 characters';
     }
 
-    // Role validation (should always be valid due to select, but just in case)
-    if (!formData.role || !['head', 'assistant'].includes(formData.role)) {
-      newErrors.role = 'Please select a valid role';
+    // Role validation - require explicit selection
+    if (!formData.role || formData.role === '') {
+      newErrors.role = 'Please select a role';
     }
 
-    // Email validation
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!validateEmail(formData.email)) {
+    // Email validation (optional)
+    if (formData.email && formData.email.trim() && !validateEmail(formData.email)) {
       newErrors.email = 'Please enter a valid email address';
     }
 
-    // Phone validation
-    if (!formData.phone.trim()) {
-      newErrors.phone = 'Phone number is required';
-    } else if (!validatePhone(formData.phone)) {
+    // Phone validation (optional)
+    if (formData.phone && formData.phone.trim() && !validatePhone(formData.phone)) {
       newErrors.phone = 'Please enter a valid phone number';
     }
 
@@ -89,15 +92,24 @@ export default function CoachForm({
       return;
     }
 
-    try {
-      await onSubmit(formData);
-    } catch (error) {
-      console.error('Form submission error:', error);
-      // Handle error (could set a general error state here)
+    // Only submit if we have a valid role selected
+    if (formData.role === 'head' || formData.role === 'assistant') {
+      const submitData: CreateCoachData = {
+        name: formData.name,
+        role: formData.role,
+        ...(formData.email && formData.email.trim() && { email: formData.email }),
+        ...(formData.phone && formData.phone.trim() && { phone: formData.phone }),
+      };
+
+      try {
+        await onSubmit(submitData);
+      } catch (error) {
+        console.error('Form submission error:', error);
+      }
     }
   };
 
-  const handleChange = (field: keyof CreateCoachData, value: string) => {
+  const handleChange = (field: keyof FormData, value: string) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -143,22 +155,20 @@ export default function CoachForm({
         <Input
           label="Email Address"
           type="email"
-          value={formData.email}
+          value={formData.email || ''}
           onChange={(e) => handleChange('email', e.target.value)}
           error={errors.email}
-          placeholder="coach@example.com"
-          required
+          placeholder="coach@example.com (optional)"
         />
 
         {/* Phone */}
         <Input
           label="Phone Number"
           type="tel"
-          value={formData.phone}
+          value={formData.phone || ''}
           onChange={(e) => handleChange('phone', e.target.value)}
           error={errors.phone}
-          placeholder="(555) 123-4567"
-          required
+          placeholder="(555) 123-4567 (optional)"
         />
       </div>
 

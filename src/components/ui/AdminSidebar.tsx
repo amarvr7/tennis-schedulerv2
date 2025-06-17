@@ -241,6 +241,19 @@ export default function AdminSidebar() {
                 )}
               </Link>
             </li>
+            <li>
+              <Link 
+                href="/admin/rules" 
+                className="block p-2 rounded hover:bg-neutral-200 transition-colors flex items-center"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                  <path d="M10 2v20M14 2v20M4 7h16M4 17h16"></path>
+                </svg>
+                {(!collapsed || !isMobile) && (
+                  <Typography className={`text-neutral-700 ml-2 ${collapsed && !isMobile ? 'hidden' : ''}`}>Rules</Typography>
+                )}
+              </Link>
+            </li>
             {/* Add more admin navigation items as needed */}
           </ul>
         </nav>

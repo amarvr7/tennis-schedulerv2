@@ -40,6 +40,7 @@ export const groupService = {
           id: doc.id,
           name: data.name,
           size: data.size || 8, // Default to 8 if not set (for existing data)
+          color: data.color,
           createdAt: convertTimestamp(data.createdAt),
           updatedAt: convertTimestamp(data.updatedAt),
         } as Group;

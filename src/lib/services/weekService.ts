@@ -2,6 +2,7 @@ import {
   collection, 
   doc, 
   getDocs, 
+  getDoc,
   addDoc, 
   updateDoc, 
   deleteDoc, 
@@ -48,6 +49,31 @@ export const weekService = {
     } catch (error) {
       console.error('Error fetching weeks:', error);
       throw new Error('Failed to fetch weeks');
+    }
+  },
+
+  // Get a single week by ID
+  async getById(id: string): Promise<Week | null> {
+    try {
+      const weekRef = doc(db, COLLECTION_NAME, id);
+      const weekSnap = await getDoc(weekRef);
+      
+      if (!weekSnap.exists()) {
+        return null;
+      }
+      
+      const data = weekSnap.data();
+      return {
+        id: weekSnap.id,
+        name: data.name,
+        startDate: convertTimestamp(data.startDate),
+        endDate: convertTimestamp(data.endDate),
+        createdAt: convertTimestamp(data.createdAt),
+        updatedAt: convertTimestamp(data.updatedAt),
+      } as Week;
+    } catch (error) {
+      console.error('Error fetching week:', error);
+      throw new Error('Failed to fetch week');
     }
   },
 

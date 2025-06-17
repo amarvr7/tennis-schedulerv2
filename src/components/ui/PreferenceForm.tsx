@@ -2,21 +2,21 @@ import { useState, useEffect } from 'react';
 import Button from './Button';
 import Select from './Select';
 import Typography from './Typography';
-import { CreateCoachPreferenceData, Coach, Week, Location } from '../../types';
+import { CreateGroupPreferenceData, Group, Week, Location } from '../../types';
 
 interface PreferenceFormProps {
-  initialData?: Partial<CreateCoachPreferenceData & { id: string }>;
-  onSubmit: (data: CreateCoachPreferenceData) => Promise<void>;
+  initialData?: Partial<CreateGroupPreferenceData & { id: string }>;
+  onSubmit: (data: CreateGroupPreferenceData) => Promise<void>;
   onCancel: () => void;
   loading?: boolean;
   isEdit?: boolean;
-  coaches?: Coach[];
+  groups?: Group[];
   weeks?: Week[];
   locations?: Location[];
 }
 
 interface FormErrors {
-  coachId?: string;
+  groupId?: string;
   weekId?: string;
   preferenceType?: string;
   locationIds?: string;
@@ -29,12 +29,12 @@ export default function PreferenceForm({
   onCancel,
   loading = false,
   isEdit = false,
-  coaches = [],
+  groups = [],
   weeks = [],
   locations = []
 }: PreferenceFormProps) {
-  const [formData, setFormData] = useState<CreateCoachPreferenceData>({
-    coachId: initialData?.coachId || '',
+  const [formData, setFormData] = useState<CreateGroupPreferenceData>({
+    groupId: initialData?.groupId || '',
     weekId: initialData?.weekId || '',
     preferenceType: initialData?.preferenceType || 'location',
     locationIds: initialData?.locationIds || [],
@@ -47,7 +47,7 @@ export default function PreferenceForm({
   useEffect(() => {
     if (initialData) {
       setFormData({
-        coachId: initialData.coachId || '',
+        groupId: initialData.groupId || '',
         weekId: initialData.weekId || '',
         preferenceType: initialData.preferenceType || 'location',
         locationIds: initialData.locationIds || [],
@@ -60,8 +60,8 @@ export default function PreferenceForm({
     const newErrors: FormErrors = {};
 
     // Required field validation
-    if (!formData.coachId) {
-      newErrors.coachId = 'Coach is required';
+    if (!formData.groupId) {
+      newErrors.groupId = 'Group is required';
     }
 
     if (!formData.weekId) {
@@ -94,8 +94,8 @@ export default function PreferenceForm({
 
     try {
       // Clean up data based on preference type
-      const submitData: CreateCoachPreferenceData = {
-        coachId: formData.coachId,
+      const submitData: CreateGroupPreferenceData = {
+        groupId: formData.groupId,
         weekId: formData.weekId,
         preferenceType: formData.preferenceType,
         locationIds: formData.preferenceType === 'location' ? formData.locationIds : undefined,
@@ -108,7 +108,7 @@ export default function PreferenceForm({
     }
   };
 
-  const handleInputChange = (field: keyof CreateCoachPreferenceData, value: any) => {
+  const handleInputChange = (field: keyof CreateGroupPreferenceData, value: any) => {
     setFormData(prev => {
       const newData = {
         ...prev,
@@ -128,7 +128,7 @@ export default function PreferenceForm({
     });
     
     // Clear error when user makes changes
-    if (errors[field]) {
+    if (errors[field as keyof FormErrors]) {
       setErrors(prev => ({
         ...prev,
         [field]: ''
@@ -160,10 +160,10 @@ export default function PreferenceForm({
     }
   };
 
-  // Generate coach options
-  const coachOptions = coaches.map(coach => ({
-    value: coach.id,
-    label: `${coach.name} (${coach.role === 'head' ? 'Head Coach' : 'Assistant Coach'})`
+  // Generate group options
+  const groupOptions = groups.map(group => ({
+    value: group.id,
+    label: `${group.name} (${group.size} players)`
   }));
 
   // Generate week options
@@ -197,14 +197,14 @@ export default function PreferenceForm({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <Select
-            label="Coach"
-            value={formData.coachId}
-            onChange={(e) => handleInputChange('coachId', e.target.value)}
-            error={errors.coachId}
-            required
+            label="Group"
+            value={formData.groupId}
+            onChange={(e) => handleInputChange('groupId', e.target.value)}
+            error={errors.groupId}
+            disabled={loading}
           >
-            <option value="">Select a coach</option>
-            {coachOptions.map(option => (
+            <option value="">Select a group</option>
+            {groupOptions.map(option => (
               <option key={option.value} value={option.value}>
                 {option.label}
               </option>
@@ -218,7 +218,7 @@ export default function PreferenceForm({
             value={formData.weekId}
             onChange={(e) => handleInputChange('weekId', e.target.value)}
             error={errors.weekId}
-            required
+            disabled={loading}
           >
             <option value="">Select a week</option>
             {weekOptions.map(option => (
@@ -228,74 +228,84 @@ export default function PreferenceForm({
             ))}
           </Select>
         </div>
+      </div>
 
-        <div className="md:col-span-2">
+      <div>
+        <Select
+          label="Preference Type"
+          value={formData.preferenceType}
+          onChange={(e) => handleInputChange('preferenceType', e.target.value)}
+          error={errors.preferenceType}
+          disabled={loading}
+        >
+          {preferenceTypeOptions.map(option => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </Select>
+      </div>
+
+      {/* Location Selection */}
+      {formData.preferenceType === 'location' && (
+        <div>
+          <Typography variant="small" weight="medium" className="block mb-2">
+            Preferred Locations *
+          </Typography>
+          {errors.locationIds && (
+            <Typography variant="small" className="text-red-600 mb-2">
+              {errors.locationIds}
+            </Typography>
+          )}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {locations.map(location => (
+              <label
+                key={location.id}
+                className="flex items-center space-x-2 p-3 border rounded-md cursor-pointer hover:bg-neutral-50"
+              >
+                <input
+                  type="checkbox"
+                  checked={formData.locationIds?.includes(location.id) || false}
+                  onChange={() => handleLocationToggle(location.id)}
+                  className="rounded"
+                  disabled={loading}
+                />
+                <div>
+                  <Typography variant="small" weight="medium">
+                    {location.name}
+                  </Typography>
+                  <Typography variant="small" className="text-neutral-500">
+                    {location.surfaceType} Court
+                  </Typography>
+                </div>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Surface Type Selection */}
+      {formData.preferenceType === 'surface' && (
+        <div>
           <Select
-            label="Preference Type"
-            value={formData.preferenceType}
-            onChange={(e) => handleInputChange('preferenceType', e.target.value)}
-            error={errors.preferenceType}
-            required
+            label="Preferred Surface Type"
+            value={formData.surfaceType || ''}
+            onChange={(e) => handleInputChange('surfaceType', e.target.value)}
+            error={errors.surfaceType}
+            disabled={loading}
           >
-            {preferenceTypeOptions.map(option => (
+            <option value="">Select a surface type</option>
+            {surfaceOptions.map(option => (
               <option key={option.value} value={option.value}>
                 {option.label}
               </option>
             ))}
           </Select>
         </div>
+      )}
 
-        {formData.preferenceType === 'location' && (
-          <div className="md:col-span-2">
-            <div className="space-y-2">
-              <Typography variant="small" weight="medium" className="text-neutral-700">
-                Preferred Locations *
-              </Typography>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 border border-neutral-200 rounded-lg p-4">
-                {locationOptions.map(option => (
-                  <label key={option.value} className="flex items-center space-x-2 cursor-pointer hover:bg-neutral-50 p-2 rounded">
-                    <input
-                      type="checkbox"
-                      checked={formData.locationIds?.includes(option.value) || false}
-                      onChange={() => handleLocationToggle(option.value)}
-                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-neutral-300 rounded"
-                    />
-                    <Typography variant="small" className="text-neutral-700">
-                      {option.label}
-                    </Typography>
-                  </label>
-                ))}
-              </div>
-              {errors.locationIds && (
-                <Typography variant="small" className="text-error-600">
-                  {errors.locationIds}
-                </Typography>
-              )}
-            </div>
-          </div>
-        )}
-
-        {formData.preferenceType === 'surface' && (
-          <div className="md:col-span-2">
-            <Select
-              label="Preferred Surface Type"
-              value={formData.surfaceType || ''}
-              onChange={(e) => handleInputChange('surfaceType', e.target.value)}
-              error={errors.surfaceType}
-              required
-            >
-              <option value="">Select a surface type</option>
-              {surfaceOptions.map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </Select>
-          </div>
-        )}
-      </div>
-
-      <div className="flex justify-end space-x-3">
+      {/* Form Actions */}
+      <div className="flex justify-end space-x-3 pt-4">
         <Button
           type="button"
           variant="outline"
@@ -309,7 +319,7 @@ export default function PreferenceForm({
           variant="primary"
           disabled={loading}
         >
-          {loading ? 'Saving...' : (isEdit ? 'Update Preference' : 'Add Preference')}
+          {loading ? 'Saving...' : (isEdit ? 'Update' : 'Add')} Preference
         </Button>
       </div>
     </form>

@@ -29,12 +29,42 @@ export default function GroupForm({
   coaches,
   initialCoachIds = []
 }: GroupFormProps) {
+  // Predefined color options
+  const colorOptions = [
+    '#3B82F6', // Blue
+    '#10B981', // Green  
+    '#F59E0B', // Yellow
+    '#EF4444', // Red
+    '#8B5CF6', // Purple
+    '#F97316', // Orange
+    '#06B6D4', // Cyan
+    '#84CC16', // Lime
+    '#EC4899', // Pink
+    '#6B7280', // Gray
+    '#1E40AF', // Dark Blue
+    '#059669', // Dark Green
+    '#DC2626', // Dark Red
+    '#7C3AED', // Dark Purple
+    '#EA580C', // Dark Orange
+    '#0891B2', // Dark Cyan
+    '#65A30D', // Dark Lime
+    '#DB2777', // Dark Pink
+    '#374151', // Dark Gray
+    '#FDE047', // Bright Yellow
+    '#34D399', // Mint Green
+    '#F472B6', // Light Pink
+    '#A78BFA', // Light Purple
+    '#FBBF24', // Amber
+    '#60A5FA', // Light Blue
+  ];
+
   // Memoize initial form data to prevent unnecessary updates
   const initialFormData = useMemo(() => ({
     name: initialData.name || '',
     size: initialData.size || 8, // Default to 8 players
+    color: initialData.color || colorOptions[0], // Default to first color
     coachIds: [...initialCoachIds], // Create a new array to avoid reference issues
-  }), [initialData.name, initialData.size, initialCoachIds.join(',')]); // Use join to create stable dependency
+  }), [initialData.name, initialData.size, initialData.color, initialCoachIds.join(',')]); // Use join to create stable dependency
 
   const [formData, setFormData] = useState<CreateGroupData>(() => initialFormData);
   const [errors, setErrors] = useState<FormErrors>({});
@@ -154,6 +184,38 @@ export default function GroupForm({
           max="50"
           required
         />
+
+        {/* Group Color */}
+        <div className="space-y-2">
+          <Typography variant="small" weight="medium">
+            Group Color
+          </Typography>
+          <div className="flex flex-wrap gap-2">
+            {colorOptions.map((color) => (
+              <button
+                key={color}
+                type="button"
+                onClick={() => setFormData(prev => ({ ...prev, color }))}
+                className={`w-8 h-8 rounded-full border-2 transition-all ${
+                  formData.color === color 
+                    ? 'border-neutral-900 scale-110' 
+                    : 'border-neutral-300 hover:border-neutral-400'
+                }`}
+                style={{ backgroundColor: color }}
+                title={color}
+              />
+            ))}
+          </div>
+          <div className="flex items-center space-x-2">
+            <div 
+              className="w-4 h-4 rounded border border-neutral-300"
+              style={{ backgroundColor: formData.color }}
+            />
+            <Typography variant="small" className="text-neutral-600">
+              Selected: {formData.color}
+            </Typography>
+          </div>
+        </div>
 
         {/* Coach Assignment */}
         <div className="space-y-3">

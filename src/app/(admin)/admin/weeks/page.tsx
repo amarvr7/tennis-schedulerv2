@@ -1,15 +1,17 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { PlusIcon, PencilIcon, TrashIcon, CalendarIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, PencilIcon, TrashIcon, CalendarIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 import Typography from '@/components/ui/Typography';
 import Button from '@/components/ui/Button';
 import DataTable from '@/components/ui/DataTable';
 import Dialog from '@/components/ui/Dialog';
 import { Week, CreateWeekData, TableColumn } from '@/types';
 import { weekService } from '@/lib/services/weekService';
+import { useRouter } from 'next/navigation';
 
 export default function WeeksPage() {
+  const router = useRouter();
   const [weeks, setWeeks] = useState<Week[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -184,6 +186,14 @@ export default function WeeksPage() {
   // Define row actions
   const rowActions = (week: Week) => (
     <div className="flex items-center space-x-2">
+      <Button
+        variant="primary"
+        size="sm"
+        onClick={() => router.push(`/admin/weeks/${week.id}`)}
+      >
+        <ArrowRightIcon className="h-4 w-4" />
+        Build Schedule
+      </Button>
       <Button
         variant="outline"
         size="sm"

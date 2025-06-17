@@ -3,166 +3,170 @@
 import { useState, useEffect } from 'react';
 import Typography from '@/components/ui/Typography';
 import Button from '@/components/ui/Button';
-import { ScheduleSlot } from '@/types';
-import { scheduleService } from '@/lib/services/scheduleService';
+import Card from '@/components/ui/Card';
+import Select from '@/components/ui/Select';
+import { GroupWithSchedule, GroupScheduleSlot, Location, CreateGroupScheduleSlotData } from '@/types';
+import { groupService } from '@/lib/services/groupService';
+import { locationService } from '@/lib/services/locationService';
+import { groupScheduleService } from '@/lib/services/groupScheduleService';
+import { TrashIcon, PlusIcon } from '@heroicons/react/24/outline';
 
 export default function SchedulePage() {
-  const [scheduleSlots, setScheduleSlots] = useState<ScheduleSlot[]>([]);
+  const [groups, setGroups] = useState<GroupWithSchedule[]>([]);
+  const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(true);
-  const [updating, setUpdating] = useState<string | null>(null);
+  const [saving, setSaving] = useState<string | null>(null);
 
-  const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-  const dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  
-  // Generate time slots (6 AM to 10 PM in 30-minute intervals)
-  const generateTimeSlots = () => {
-    const slots = [];
-    for (let hour = 6; hour <= 21; hour++) {
-      for (let minutes = 0; minutes < 60; minutes += 30) {
-        const timeString = `${hour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-        slots.push(timeString);
-      }
-    }
-    return slots;
-  };
-
-  const timeSlots = generateTimeSlots();
+  const days: Array<{ key: string; label: string }> = [
+    { key: 'monday', label: 'Monday' },
+    { key: 'tuesday', label: 'Tuesday' },
+    { key: 'wednesday', label: 'Wednesday' },
+    { key: 'thursday', label: 'Thursday' },
+    { key: 'friday', label: 'Friday' },
+  ];
 
   useEffect(() => {
-    loadSchedule();
+    loadData();
   }, []);
 
-  const loadSchedule = async () => {
+  const loadData = async () => {
     try {
       setLoading(true);
-      const slots = await scheduleService.getAll();
-      setScheduleSlots(slots);
+      const [groupsData, locationsData, scheduleData] = await Promise.all([
+        groupService.getAll(),
+        locationService.getAll(),
+        groupScheduleService.getAll(),
+      ]);
+
+      // Enhance groups with their schedule slots
+      const groupsWithSchedule: GroupWithSchedule[] = groupsData.map(group => ({
+        ...group,
+        scheduleSlots: scheduleData.filter(slot => slot.groupId === group.id),
+      }));
+
+      setGroups(groupsWithSchedule);
+      setLocations(locationsData);
     } catch (error) {
-      console.error('Failed to load schedule:', error);
+      console.error('Failed to load schedule data:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const findSlot = (day: string, timeSlot: string): ScheduleSlot | undefined => {
-    return scheduleSlots.find(slot => slot.day === day && slot.timeSlot === timeSlot);
-  };
-
-  const isSlotActive = (day: string, timeSlot: string): boolean => {
-    const slot = findSlot(day, timeSlot);
-    return slot?.isActive || false;
-  };
-
-  const toggleSlot = async (day: string, timeSlot: string) => {
-    const slotKey = `${day}-${timeSlot}`;
-    setUpdating(slotKey);
-
-    try {
-      const existingSlot = findSlot(day, timeSlot);
-      
-      if (existingSlot) {
-        // Optimistically update existing slot
-        const newIsActive = !existingSlot.isActive;
-        const updatedSlot = { ...existingSlot, isActive: newIsActive };
-        
-        // Update local state immediately
-        setScheduleSlots(prev => 
-          prev.map(slot => slot.id === existingSlot.id ? updatedSlot : slot)
-        );
-        
-        // Update database in background
-        await scheduleService.update({
-          id: existingSlot.id,
-          isActive: newIsActive
-        });
-      } else {
-        // Create new slot optimistically
-        const newSlot: ScheduleSlot = {
-          id: `temp-${Date.now()}`, // Temporary ID
-          day,
-          timeSlot,
-          isActive: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        };
-        
-        // Update local state immediately
-        setScheduleSlots(prev => [...prev, newSlot]);
-        
-        // Create in database and update with real ID
-        const realId = await scheduleService.create({
-          day,
-          timeSlot,
-          isActive: true
-        });
-        
-        // Update local state with real ID
-        setScheduleSlots(prev => 
-          prev.map(slot => slot.id === newSlot.id ? { ...slot, id: realId } : slot)
-        );
+  const generateTimeOptions = () => {
+    const times = [];
+    for (let hour = 6; hour <= 22; hour++) {
+      for (let minutes = 0; minutes < 60; minutes += 30) {
+        const timeString = `${hour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        const displayTime = formatTimeDisplay(timeString);
+        times.push({ value: timeString, label: displayTime });
       }
-    } catch (error) {
-      console.error('Failed to toggle slot:', error);
-      // Reload data on error as fallback
-      await loadSchedule();
-    } finally {
-      setUpdating(null);
     }
+    return times;
   };
 
-  const formatTimeDisplay = (timeSlot: string) => {
-    const [hours, minutes] = timeSlot.split(':');
+  const formatTimeDisplay = (timeString: string) => {
+    const [hours, minutes] = timeString.split(':');
     const hour = parseInt(hours);
     const ampm = hour >= 12 ? 'PM' : 'AM';
     const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
     return `${displayHour}:${minutes} ${ampm}`;
   };
 
-  const clearAllSlots = async () => {
-    if (!confirm('Are you sure you want to clear all active time slots?')) {
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const activeSlots = scheduleSlots.filter(slot => slot.isActive);
-      await Promise.all(activeSlots.map(slot => 
-        scheduleService.update({ id: slot.id, isActive: false })
-      ));
-      await loadSchedule();
-    } catch (error) {
-      console.error('Failed to clear slots:', error);
-    } finally {
-      setLoading(false);
-    }
+  const getGroupSlotsForDay = (groupId: string, day: string): GroupScheduleSlot[] => {
+    const group = groups.find(g => g.id === groupId);
+    return group?.scheduleSlots?.filter(slot => slot.day === day) || [];
   };
 
-  const setAllSlots = async () => {
-    if (!confirm('Are you sure you want to activate all time slots?')) {
-      return;
-    }
+  const addTimeSlot = async (groupId: string, day: string) => {
+    const slotKey = `${groupId}-${day}-add`;
+    setSaving(slotKey);
 
     try {
-      setLoading(true);
+      const newSlotData: CreateGroupScheduleSlotData = {
+        groupId,
+        day: day as any,
+        startTime: '09:00',
+        endTime: '10:30',
+      };
+
+      const slotId = await groupScheduleService.create(newSlotData);
       
-      // Create all possible slots as active
-      const allSlots = [];
-      for (const day of days) {
-        for (const timeSlot of timeSlots) {
-          allSlots.push({ day, timeSlot, isActive: true });
-        }
-      }
+      // Create new slot object
+      const newSlot: GroupScheduleSlot = {
+        id: slotId,
+        ...newSlotData,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
 
-      // Clear existing slots and create new ones
-      await Promise.all(scheduleSlots.map(slot => scheduleService.delete(slot.id)));
-      await Promise.all(allSlots.map(slot => scheduleService.create(slot)));
-      await loadSchedule();
+      // Update local state immediately instead of reloading
+      setGroups(prevGroups => 
+        prevGroups.map(group => 
+          group.id === groupId 
+            ? { ...group, scheduleSlots: [...(group.scheduleSlots || []), newSlot] }
+            : group
+        )
+      );
     } catch (error) {
-      console.error('Failed to set all slots:', error);
+      console.error('Failed to add time slot:', error);
     } finally {
-      setLoading(false);
+      setSaving(null);
     }
   };
+
+  const updateTimeSlot = async (
+    slotId: string, 
+    field: 'startTime' | 'endTime', 
+    value: string
+  ) => {
+    const slotKey = `${slotId}-${field}`;
+    setSaving(slotKey);
+
+    try {
+      await groupScheduleService.update({
+        id: slotId,
+        [field]: value,
+      });
+
+      // Update local state immediately
+      setGroups(prevGroups => 
+        prevGroups.map(group => ({
+          ...group,
+          scheduleSlots: group.scheduleSlots?.map(slot => 
+            slot.id === slotId ? { ...slot, [field]: value } : slot
+          ),
+        }))
+      );
+    } catch (error) {
+      console.error('Failed to update time slot:', error);
+    } finally {
+      setSaving(null);
+    }
+  };
+
+  const deleteTimeSlot = async (slotId: string) => {
+    if (!confirm('Are you sure you want to delete this time slot?')) return;
+
+    setSaving(slotId);
+    try {
+      await groupScheduleService.delete(slotId);
+      
+      // Update local state immediately
+      setGroups(prevGroups => 
+        prevGroups.map(group => ({
+          ...group,
+          scheduleSlots: group.scheduleSlots?.filter(slot => slot.id !== slotId),
+        }))
+      );
+    } catch (error) {
+      console.error('Failed to delete time slot:', error);
+    } finally {
+      setSaving(null);
+    }
+  };
+
+  const timeOptions = generateTimeOptions();
 
   if (loading) {
     return (
@@ -177,102 +181,142 @@ export default function SchedulePage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <Typography variant="h1" weight="bold" className="mb-2">
-            Schedule Template
+            Group Schedule
           </Typography>
           <Typography variant="lead" className="text-neutral-600">
-            Set the baseline availability for scheduling. Click cells to toggle time slots on/off.
+            Set training times for each group. Times can be customized per day and multiple sessions per day are supported.
           </Typography>
         </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={clearAllSlots}
-            disabled={loading}
-          >
-            Clear All
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={setAllSlots}
-            disabled={loading}
-          >
-            Set All
-          </Button>
-        </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
+      <Card>
         <div className="overflow-x-auto">
-          <div className="min-w-full">
-            {/* Header */}
-            <div className="grid grid-cols-8 bg-neutral-50 border-b border-neutral-200">
-              <div className="p-3 text-right">
-                <Typography weight="semibold" className="text-neutral-600">Time</Typography>
-              </div>
-              {dayLabels.map((dayLabel, index) => (
-                <div key={dayLabel} className="p-3 text-center border-l border-neutral-200">
-                  <Typography weight="semibold" className="text-neutral-600">{dayLabel}</Typography>
-                </div>
-              ))}
-            </div>
-
-            {/* Time slots grid */}
-            <div className="divide-y divide-neutral-100">
-              {timeSlots.map((timeSlot) => (
-                <div key={timeSlot} className="grid grid-cols-8 hover:bg-neutral-25">
-                  <div className="p-3 text-right border-r border-neutral-100 bg-neutral-50/50">
-                    <Typography variant="small" className="text-neutral-600 font-mono">
-                      {formatTimeDisplay(timeSlot)}
-                    </Typography>
-                  </div>
-                  {days.map((day, dayIndex) => {
-                    const isActive = isSlotActive(day, timeSlot);
-                    const slotKey = `${day}-${timeSlot}`;
-                    const isUpdating = updating === slotKey;
-                    
-                    return (
-                      <div key={day} className="border-l border-neutral-100">
-                        <button
-                          onClick={() => toggleSlot(day, timeSlot)}
-                          disabled={isUpdating}
-                          className={`w-full h-12 flex items-center justify-center transition-colors ${
-                            isActive 
-                              ? 'bg-primary-100 hover:bg-primary-200' 
-                              : 'hover:bg-neutral-100'
-                          } ${isUpdating ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                          aria-label={`${isActive ? 'Deactivate' : 'Activate'} ${formatTimeDisplay(timeSlot)} on ${day}`}
-                        >
-                          {isUpdating ? (
-                            <div className="w-4 h-4 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
-                          ) : isActive ? (
-                            <div className="w-3 h-3 bg-primary-600 rounded-full" />
-                          ) : (
-                            <div className="w-3 h-3 border-2 border-neutral-300 rounded-full" />
-                          )}
-                        </button>
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-neutral-200">
+                <th className="text-left p-4 w-48">
+                  <Typography weight="semibold" className="text-neutral-600">Group</Typography>
+                </th>
+                {days.map(day => (
+                  <th key={day.key} className="text-center p-4 min-w-64">
+                    <Typography weight="semibold" className="text-neutral-600">{day.label}</Typography>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {groups.map(group => (
+                <tr 
+                  key={group.id} 
+                  className="border-b border-neutral-100 hover:bg-opacity-20"
+                  style={{ 
+                    backgroundColor: group.color ? `${group.color}15` : 'transparent' // 15 = ~8% opacity
+                  }}
+                >
+                  <td className="p-4 border-r border-neutral-100">
+                    <div className="flex items-center space-x-3">
+                      {group.color && (
+                        <div 
+                          className="w-4 h-4 rounded-full border border-neutral-300 flex-shrink-0"
+                          style={{ backgroundColor: group.color }}
+                        />
+                      )}
+                      <div>
+                        <Typography weight="medium">{group.name}</Typography>
+                        <Typography variant="small" className="text-neutral-600">
+                          {group.size} players
+                        </Typography>
                       </div>
+                    </div>
+                  </td>
+                  {days.map(day => {
+                    const daySlots = getGroupSlotsForDay(group.id, day.key);
+                    return (
+                      <td key={day.key} className="p-4 border-r border-neutral-100 align-top">
+                        <div className="space-y-2">
+                          {daySlots.map(slot => (
+                            <div key={slot.id} className="bg-neutral-50 border border-neutral-200 rounded-lg p-3">
+                              <div className="grid grid-cols-2 gap-2 mb-2">
+                                <div>
+                                  <Typography variant="small" className="text-neutral-600 mb-1">Start</Typography>
+                                  <select
+                                    value={slot.startTime}
+                                    onChange={(e) => updateTimeSlot(slot.id, 'startTime', e.target.value)}
+                                    disabled={saving === `${slot.id}-startTime`}
+                                    className="w-full px-3 py-2 text-sm border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:opacity-50"
+                                  >
+                                    {timeOptions.map(option => (
+                                      <option key={option.value} value={option.value}>
+                                        {option.label}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                                <div>
+                                  <Typography variant="small" className="text-neutral-600 mb-1">End</Typography>
+                                  <select
+                                    value={slot.endTime}
+                                    onChange={(e) => updateTimeSlot(slot.id, 'endTime', e.target.value)}
+                                    disabled={saving === `${slot.id}-endTime`}
+                                    className="w-full px-3 py-2 text-sm border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:opacity-50"
+                                  >
+                                    {timeOptions.map(option => (
+                                      <option key={option.value} value={option.value}>
+                                        {option.label}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                              </div>
+                              <div className="flex justify-end">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    deleteTimeSlot(slot.id);
+                                  }}
+                                  disabled={saving === slot.id}
+                                  className="text-red-600 hover:text-red-700 border-red-300 hover:border-red-400"
+                                  type="button"
+                                >
+                                  <TrashIcon className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                          
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              addTimeSlot(group.id, day.key);
+                            }}
+                            disabled={saving === `${group.id}-${day.key}-add`}
+                            className="w-full"
+                            type="button"
+                          >
+                            <PlusIcon className="h-4 w-4 mr-1" />
+                            Add Time
+                          </Button>
+                        </div>
+                      </td>
                     );
                   })}
-                </div>
+                </tr>
               ))}
-            </div>
-          </div>
+            </tbody>
+          </table>
         </div>
-      </div>
+      </Card>
 
       <div className="bg-neutral-50 p-4 rounded-lg">
         <Typography variant="small" className="text-neutral-600">
-          <strong>Legend:</strong> 
-          <span className="inline-flex items-center ml-2 mr-4">
-            <div className="w-3 h-3 bg-primary-600 rounded-full mr-2" />
-            Active slot
-          </span>
-          <span className="inline-flex items-center">
-            <div className="w-3 h-3 border-2 border-neutral-300 rounded-full mr-2" />
-            Inactive slot
-          </span>
+          <strong>Instructions:</strong> Use the time dropdowns to set start and end times for each group&apos;s training sessions. 
+          You can add multiple time slots per day. Groups can have no training on certain days by leaving them empty.
         </Typography>
       </div>
     </div>

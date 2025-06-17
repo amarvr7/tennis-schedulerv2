@@ -43,7 +43,16 @@ export default function DataTable<T extends { id: string }>({
   const sortedData = useMemo(() => {
     if (!sortConfig) return filteredData;
 
+    const column = columns.find(col => String(col.key) === sortConfig.key);
+    
     return [...filteredData].sort((a, b) => {
+      // Use custom sort function if provided
+      if (column?.sortFunction) {
+        const result = column.sortFunction(a, b);
+        return sortConfig.direction === 'asc' ? result : -result;
+      }
+
+      // Default sorting
       const aValue = a[sortConfig.key as keyof T];
       const bValue = b[sortConfig.key as keyof T];
 
@@ -58,7 +67,7 @@ export default function DataTable<T extends { id: string }>({
       }
       return 0;
     });
-  }, [filteredData, sortConfig]);
+  }, [filteredData, sortConfig, columns]);
 
   const handleSort = (key: string, sortable: boolean = true) => {
     if (!sortable) return;

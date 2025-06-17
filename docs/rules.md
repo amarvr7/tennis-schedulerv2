@@ -36,6 +36,7 @@ Use these guidelines before generating or updating any code. The goal is to keep
 - Font configuration in layout.tsx is foundational infrastructure, not styling. Do not modify without team approval.
 - Never style text elements directly without using our design system components or classes.
 - Remember that the design system is the single source of truth for all visual styling.
+- **Title/Subtitle Pattern**: When using title+subtitle combinations, wrap in container with `flex flex-col gap-1` to prevent text from touching due to Tailwind's Preflight reset. Note: `space-y-*` doesn't work with inline elements like `<small>`.
 - Any exceptions must be explicitly approved and documented with clear rationale.
 
 ## **8. Context Awareness**

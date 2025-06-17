@@ -119,7 +119,7 @@ export default function CoachesPage() {
         <div>
           <Typography weight="medium">{value}</Typography>
           <Typography variant="small" className="text-neutral-500">
-            {coach.email}
+            {coach.email || 'No email'}
           </Typography>
         </div>
       )
@@ -165,7 +165,7 @@ export default function CoachesPage() {
       label: 'Phone',
       sortable: true,
       render: (value) => (
-        <Typography variant="small">{value}</Typography>
+        <Typography variant="small">{value || 'No phone'}</Typography>
       )
     },
     {

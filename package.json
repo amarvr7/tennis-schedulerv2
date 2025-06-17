@@ -6,11 +6,15 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "add-location": "node scripts/add-location.js",
+    "add-locations": "node scripts/add-locations-bulk.js",
+    "create-sample-locations": "node scripts/add-locations-bulk.js --create-sample"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
     "firebase": "^11.8.0",
+    "firebase-admin": "^13.4.0",
     "next": "15.3.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
